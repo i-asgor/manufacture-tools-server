@@ -19,7 +19,22 @@ async function run(){
     try{
         await client.connect();
         const itemCollection = client.db("Manufacture").collection("items");
+        const userCollection = client.db("Manufacture").collection("users");
         // console.log(itemCollection)
+
+        // user Save
+        app.put('/user/:email', async(req, res) => {
+          const email = req.params.email;
+          const user = req.body;
+          const filter = {email: email};
+          const options = {upsert: true};
+          const updateDoc ={
+            $set:user,
+          };
+          const result = await userCollection.updateOne(filter, updateDoc, options);
+          const token =jwt.sign({email:email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+          res.send({result, token});
+        })
 
         // get items
         app.get('/manufacture', async(req, res) =>{
@@ -36,7 +51,7 @@ async function run(){
             // console.log(id);
             const query = { _id: ObjectId(id) };
             const singleItem = await itemCollection.findOne(query);
-            console.log(query, singleItem)
+            // console.log(query, singleItem)
             res.send(singleItem);
         });
 
@@ -44,7 +59,7 @@ async function run(){
         app.put('/manufacture/:id', async(req,res) =>{
           const id = req.params.id;
           const updatedItem = req.body;
-          console.log(updatedItem)
+          // console.log(updatedItem)
           const filter = {_id: ObjectId(id)};
           const options = {upsert: true};
           const updatedInfo = {
