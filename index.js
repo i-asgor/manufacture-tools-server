@@ -22,6 +22,12 @@ async function run(){
         const userCollection = client.db("Manufacture").collection("users");
         // console.log(itemCollection)
 
+        // all Users
+        app.get('/user', async(req,res)=>{
+          const users = await userCollection.find().toArray();
+          res.send(users);
+        })
+
         // user Save
         app.put('/user/:email', async(req, res) => {
           const email = req.params.email;
