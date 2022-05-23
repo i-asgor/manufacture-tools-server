@@ -73,9 +73,17 @@ async function run(){
           }
           else{
             res.status(403).send({message:'forbidden Acces'});
-          }
-          
+          }          
         });
+
+
+        // Admin
+        app.get('/admin/:email', async(req, res) =>{
+          const email = req.params.email;
+          const user = await userCollection.findOne({email: email});
+          const isAdmin = user.role === 'admin';
+          res.send({admin: isAdmin})
+        })
 
         // get items
         app.get('/manufacture', async(req, res) =>{
