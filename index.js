@@ -97,6 +97,18 @@ async function run(){
             const items = await cursor.toArray();
             res.send(items);
         })
+        // post items
+        app.post('/items', async(req, res) =>{
+          const product = req.body;
+          const query = { price: product.price, name: product.name, email: product.userEmail, minimum_quantity: product.minimum_quantity, phone: product.phone, address: product.address }
+          const exists = await itemCollection.findOne(query);
+          if (exists) {
+            return res.send({ success: false, product: exists })
+          }
+          const result = await itemCollection.insertOne(product);
+          // console.log('sending email');
+          return res.send({ success: true, result });
+        })
 
         // get SingleItem
         app.get('/manufacture/:id', async (req, res) => {
@@ -128,7 +140,7 @@ async function run(){
         const query = { purchase: purchase.purchase, quantity: purchase.quantity, email: purchase.userEmail, name: purchase.userName, phone: purchase.phone_number, address: purchase.present_address }
         const exists = await purchaseCollection.findOne(query);
         if (exists) {
-          return res.send({ success: false, booking: exists })
+          return res.send({ success: false, purchase: exists })
         }
         const result = await purchaseCollection.insertOne(purchase);
         console.log('sending email');
