@@ -12,7 +12,6 @@ app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rf9a5.mongodb.net/?retryWrites=true&w=majority`;
-// console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
@@ -35,11 +34,11 @@ async function run(){
     try{
         await client.connect();
         const itemCollection = client.db("Manufacture").collection("items");
+        const purchaseCollection = client.db("Manufacture").collection("purchases");
         const userCollection = client.db("Manufacture").collection("users");
-        // console.log(itemCollection)
 
         // all Users
-        app.get('/user',verifyJWT, async(req,res)=>{
+        app.get('/user', async(req,res)=>{
           const users = await userCollection.find().toArray();
           res.send(users);
         })
@@ -76,6 +75,12 @@ async function run(){
           }          
         });
 
+        // get user
+        app.get('/user', verifyJWT, async (req, res) => {
+          const users = await userCollection.find().toArray();
+          res.send(users);
+        });
+
 
         // Admin
         app.get('/admin/:email', async(req, res) =>{
@@ -90,17 +95,14 @@ async function run(){
             const query = {};
             const cursor = itemCollection.find(query);
             const items = await cursor.toArray();
-            console.log(items)
             res.send(items);
         })
 
         // get SingleItem
         app.get('/manufacture/:id', async (req, res) => {
             const id = req.params.id;
-            // console.log(id);
             const query = { _id: ObjectId(id) };
             const singleItem = await itemCollection.findOne(query);
-            // console.log(query, singleItem)
             res.send(singleItem);
         });
 
@@ -108,7 +110,6 @@ async function run(){
         app.put('/manufacture/:id', async(req,res) =>{
           const id = req.params.id;
           const updatedItem = req.body;
-          // console.log(updatedItem)
           const filter = {_id: ObjectId(id)};
           const options = {upsert: true};
           const updatedInfo = {
@@ -118,7 +119,32 @@ async function run(){
           };
           const updatedResult = await itemCollection.updateOne(filter, updatedInfo, options);
           res.send(updatedResult);
-      })
+      });
+
+
+      // purchased
+      app.post('/purchase', async (req, res) => {
+        const purchase = req.body;
+        const query = { purchase: purchase.purchase, quantity: purchase.quantity, email: purchase.userEmail, name: purchase.userName, phone: purchase.phone_number, address: purchase.present_address }
+        const exists = await purchaseCollection.findOne(query);
+        if (exists) {
+          return res.send({ success: false, booking: exists })
+        }
+        const result = await purchaseCollection.insertOne(purchase);
+        console.log('sending email');
+        return res.send({ success: true, result });
+      });
+
+      // Show Purchase Product
+      app.get('/purchase', async (req, res) => {
+        const purchase = req.query.useEmail;
+        const query = req.query.useEmail;
+        // const query = { purchase: purchase };
+        // const bookings = await purchaseCollection.find(query).toArray();
+        // return res.send(bookings);
+        const purchases = await purchaseCollection.find(query).toArray();
+        res.send(purchases);
+      });
 
 
     }
