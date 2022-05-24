@@ -37,6 +37,17 @@ async function run(){
         const purchaseCollection = client.db("Manufacture").collection("purchases");
         const userCollection = client.db("Manufacture").collection("users");
 
+        const verifyAdmin = async (req, res,next) =>{
+          const initiator = req.decoded.email;
+          const initiatorAccount = await userCollection.findOne({email:initiator});
+          if(initiatorAccount.role === 'admin'){
+            next()
+          }
+          else{
+            res.status(403).send({message:'forbidden Acces'});
+          } 
+        }
+        
         // all Users
         app.get('/user', async(req,res)=>{
           const users = await userCollection.find().toArray();
@@ -58,21 +69,14 @@ async function run(){
         });
 
         // Admin User
-        app.put('/user/admin/:email',verifyJWT, async(req, res) => {
+        app.put('/user/admin/:email',verifyJWT,verifyAdmin, async(req, res) => {
           const email = req.params.email;
-          const initiator = req.decoded.email;
-          const initiatorAccount = await userCollection.findOne({email:initiator});
-          if(initiatorAccount.role === 'admin'){
             const filter = {email: email};
             const updateDoc ={
               $set:{role:'admin'},
             };
             const result = await userCollection.updateOne(filter, updateDoc);
-            res.send(result);
-          }
-          else{
-            res.status(403).send({message:'forbidden Acces'});
-          }          
+            res.send(result);         
         });
 
         // get user
@@ -97,8 +101,15 @@ async function run(){
             const items = await cursor.toArray();
             res.send(items);
         })
+        // get items
+        app.get('/products',verifyJWT,verifyAdmin, async(req, res) =>{
+            const query = {};
+            const cursor = itemCollection.find(query);
+            const items = await cursor.toArray();
+            res.send(items);
+        })
         // post items
-        app.post('/items', async(req, res) =>{
+        app.post('/items', verifyJWT, async(req, res) =>{
           const product = req.body;
           const query = { price: product.price, name: product.name, email: product.userEmail, minimum_quantity: product.minimum_quantity, phone: product.phone, address: product.address }
           const exists = await itemCollection.findOne(query);
@@ -108,6 +119,14 @@ async function run(){
           const result = await itemCollection.insertOne(product);
           // console.log('sending email');
           return res.send({ success: true, result });
+        })
+
+        // Product Deleted
+        app.delete('/products/:email', verifyJWT,verifyAdmin, async(req, res) =>{
+          const email = req.params.email;
+          const query = {email: email};
+          const result = await itemCollection.deleteOne(query);
+          res.send(result);
         })
 
         // get SingleItem
@@ -156,6 +175,14 @@ async function run(){
         // return res.send(bookings);
         const purchases = await purchaseCollection.find(query).toArray();
         res.send(purchases);
+      });
+
+      // Delete Purchase Product
+      app.delete('/purchase/:email', async (req, res) => {
+        const email = req.params.useEmail;
+          const query = {email: email};
+          const result = await purchaseCollection.deleteOne(query);
+          res.send(result);
       });
 
 
