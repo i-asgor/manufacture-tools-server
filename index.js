@@ -169,8 +169,8 @@ async function run(){
 
       // Show Purchase Product
       app.get('/purchase', async (req, res) => {
-        const purchase = req.query.useEmail;
-        const query = req.query.useEmail;
+        const query = {};
+        console.log(query)
         const purchases = await purchaseCollection.find(query).toArray();
         res.send(purchases);
       });
@@ -182,9 +182,11 @@ async function run(){
         res.send(purchases);
       });
 
+
       // Delete Purchase Product
       app.delete('/purchase/:email', async (req, res) => {
-        const email = req.params.useEmail;
+          const email = req.params.userEmail;
+          console.log(email)
           const query = {email: email};
           const result = await purchaseCollection.deleteOne(query);
           res.send(result);
@@ -201,6 +203,13 @@ async function run(){
         const result = await reviewCollection.insertOne(review);
         return res.send({ success: true, result });
       })
+
+      // Show Review
+      app.get('/reviews', verifyJWT, async (req, res) => {
+        const query = {};
+        const purchases = await reviewCollection.find(query).toArray();
+        res.send(purchases);
+      });
 
 
     }
