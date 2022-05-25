@@ -36,6 +36,7 @@ async function run(){
         const itemCollection = client.db("Manufacture").collection("items");
         const purchaseCollection = client.db("Manufacture").collection("purchases");
         const userCollection = client.db("Manufacture").collection("users");
+        const reviewCollection = client.db("Manufacture").collection("review");
 
         const verifyAdmin = async (req, res,next) =>{
           const initiator = req.decoded.email;
@@ -170,9 +171,13 @@ async function run(){
       app.get('/purchase', async (req, res) => {
         const purchase = req.query.useEmail;
         const query = req.query.useEmail;
-        // const query = { purchase: purchase };
-        // const bookings = await purchaseCollection.find(query).toArray();
-        // return res.send(bookings);
+        const purchases = await purchaseCollection.find(query).toArray();
+        res.send(purchases);
+      });
+
+      // Show All Purchase Product
+      app.get('/order',verifyJWT, verifyAdmin, async (req, res) => {
+        const query = {}
         const purchases = await purchaseCollection.find(query).toArray();
         res.send(purchases);
       });
@@ -185,6 +190,18 @@ async function run(){
           res.send(result);
       });
 
+      // post reviews
+      app.post('/reviews', verifyJWT, async(req, res) =>{
+        const review = req.body;
+        const query = { name: review.name,description: review.description, rating: review.rating }
+        const exists = await reviewCollection.findOne(query);
+        if (exists) {
+          return res.send({ success: false, product: exists })
+        }
+        const result = await reviewCollection.insertOne(review);
+        return res.send({ success: true, result });
+      })
+
 
     }
     finally{
@@ -193,7 +210,7 @@ async function run(){
 
 }
 
-run().catch(console.dir());
+run().catch(console.dir);
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
