@@ -38,6 +38,7 @@ async function run(){
         const purchaseCollection = client.db("Manufacture").collection("purchases");
         const userCollection = client.db("Manufacture").collection("users");
         const reviewCollection = client.db("Manufacture").collection("review");
+        const paymentCollection = client.db('Manufacture').collection('payments');
 
         const verifyAdmin = async (req, res,next) =>{
           const initiator = req.decoded.email;
@@ -181,6 +182,22 @@ async function run(){
         const query = {_id: ObjectId(id)};
         const purchases = await purchaseCollection.findOne(query);
         res.send(purchases);
+      })
+
+      app.patch('/purchase/:id', verifyJWT, async(req, res) =>{
+        const id  = req.params.id;
+        const payment = req.body;
+        const filter = {_id: ObjectId(id)};
+        const updatedDoc = {
+          $set: {
+            paid: true,
+            transactionId: payment.transactionId
+          }
+        }
+  
+        const result = await paymentCollection.insertOne(payment);
+        const updatedPurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+        res.send(updatedPurchase);
       })
 
       // Show All Purchase Product
