@@ -175,6 +175,13 @@ async function run(){
         res.send(purchases);
       });
 
+      app.get('/purchase/:id',verifyJWT,  async(req, res) =>{
+        const id =req.params.id;
+        const query = {_id: ObjectId(id)};
+        const purchases = await purchaseCollection.findOne(query);
+        res.send(purchases);
+      })
+
       // Show All Purchase Product
       app.get('/order',verifyJWT, verifyAdmin, async (req, res) => {
         const query = {}
@@ -185,9 +192,9 @@ async function run(){
 
       // Delete Purchase Product
       app.delete('/purchase/:email', async (req, res) => {
-          const email = req.params.userEmail;
+          const email = req.params.email;
           console.log(email)
-          const query = {email: email};
+          const query = {userEmail: email};
           const result = await purchaseCollection.deleteOne(query);
           res.send(result);
       });
