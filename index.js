@@ -82,6 +82,21 @@ async function run(){
             res.send(result);         
         });
 
+        // User Updated
+        app.put('/users/:email',verifyJWT, async(req, res) => {            
+            const email  = req.params.email;
+            const body = req.body;
+            const filter ={email: email};
+            const options = {upsert: true};
+            const updateDoc ={
+              $set:body,
+            };
+            
+            const result = await userCollection.updateOne(filter, updateDoc,options);            
+            // console.log(result)
+            res.send(result);      
+        });
+
         // get user
         app.get('/user', verifyJWT, async (req, res) => {
           const users = await userCollection.find().toArray();
@@ -165,7 +180,6 @@ async function run(){
           return res.send({ success: false, purchase: exists })
         }
         const result = await purchaseCollection.insertOne(purchase);
-        console.log('sending email');
         return res.send({ success: true, result });
       });
 
@@ -263,7 +277,7 @@ async function run(){
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('AA Hand Tools')
 })
 
 app.listen(port, () => {
