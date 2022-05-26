@@ -97,6 +97,17 @@ async function run(){
             res.send(result);      
         });
 
+
+        // Single Users
+        app.get('/users/:email', async(req,res)=>{
+          const email  = req.params.email;
+          const filter ={email: email};
+          const result = await userCollection.findOne(filter);
+          
+          // console.log(result)
+          res.send(result);
+        })
+
         // get user
         app.get('/user', verifyJWT, async (req, res) => {
           const users = await userCollection.find().toArray();
