@@ -230,7 +230,7 @@ async function run(){
       })
 
       // Show Review
-      app.get('/reviews', verifyJWT, async (req, res) => {
+      app.get('/reviews', async (req, res) => {
         const query = {};
         const purchases = await reviewCollection.find(query).toArray();
         res.send(purchases);
@@ -238,9 +238,10 @@ async function run(){
 
 
       // stripe Payment
-      app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
-        const service = req.body;
-        const price = service.price;
+      app.post('/create-payment-intent',verifyJWT, async(req, res) =>{
+        const order = req.body;
+        // console.log(order)
+        const price = order.price;
         const amount = price*100;
         const paymentIntent = await stripe.paymentIntents.create({
           amount : amount,
@@ -249,6 +250,7 @@ async function run(){
         });
         res.send({clientSecret: paymentIntent.client_secret})
       });
+
 
 
     }
