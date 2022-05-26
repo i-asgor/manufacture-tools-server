@@ -209,6 +209,17 @@ async function run(){
         res.send(purchases);
       })
 
+      // Email order Show
+      app.get('/purchases/:email',   async(req, res) =>{
+        const email  = req.params.email;
+        console.log(email)
+        const query ={userEmail: email};
+        console.log(query)
+        const purchases = await purchaseCollection.find(query).toArray();
+        res.send(purchases);
+      })
+      
+
       app.patch('/purchase/:id', verifyJWT, async(req, res) =>{
         const id  = req.params.id;
         const payment = req.body;
